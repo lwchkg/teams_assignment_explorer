@@ -7,6 +7,14 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{4219D553-A283-4E30-9271-C81F26435C82}"
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
+		LICENSE = LICENSE
+		README.md = README.md
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "images", "images", "{D4025389-1A58-44FB-8867-2A7524B5A044}"
+	ProjectSection(SolutionItems) = preProject
+		images\onedrive_web.png = images\onedrive_web.png
+		images\screenshot.png = images\screenshot.png
 	EndProjectSection
 EndProject
 Global
@@ -22,6 +30,9 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{D4025389-1A58-44FB-8867-2A7524B5A044} = {4219D553-A283-4E30-9271-C81F26435C82}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {4AA2D785-DD99-4BFD-B9B0-2FA768F8EA13}
