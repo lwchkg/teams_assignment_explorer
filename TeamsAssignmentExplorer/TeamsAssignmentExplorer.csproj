@@ -6,8 +6,8 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{293620A9-037E-4A60-A3CE-7478C4396670}</ProjectGuid>
     <OutputType>WinExe</OutputType>
-    <RootNamespace>StuWorkExplorer</RootNamespace>
-    <AssemblyName>StuWorkExplorer</AssemblyName>
+    <RootNamespace>TeamsAssignmentExplorer</RootNamespace>
+    <AssemblyName>TeamsAssignmentExplorer</AssemblyName>
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{60dc8134-eba5-43b8-bcc9-bb4bc16c2548};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
