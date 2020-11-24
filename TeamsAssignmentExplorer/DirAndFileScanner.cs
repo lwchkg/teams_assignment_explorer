@@ -7,6 +7,15 @@ namespace TeamsAssignmentExplorer
 {
     class DirAndFileScanner
     {
+        static readonly string[] studentWorkSuffixes =
+        {
+            " - Student Work",
+            " - 學生功課"
+        };
+
+        const string submittedFiles = "Submitted files";
+        const string workingFiles = "Working files";
+
         public struct HomeworkItem
         {
             public string Homework;
@@ -23,7 +32,7 @@ namespace TeamsAssignmentExplorer
                 {
                     foreach (string repoDir in Directory.GetDirectories(orgDir))
                     {
-                        if (repoDir.EndsWith(" - Student Work"))
+                        if (studentWorkSuffixes.Any(s => repoDir.EndsWith(s)))
                             output.Add(repoDir);
                     }
                 }
