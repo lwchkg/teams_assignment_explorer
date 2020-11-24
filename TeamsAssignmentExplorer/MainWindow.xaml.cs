@@ -243,12 +243,16 @@ namespace TeamsAssignmentExplorer
 
         private void ControlOpenItem_Click(object sender, EventArgs e)
         {
-            RunAssociatedProgram((((Control)sender).DataContext as FileListItem).FullPath);
+            var item = ((Control)sender).DataContext as FileListItem;
+            FileListListBox.SelectedItem = item;
+            RunAssociatedProgram(item.FullPath);
         }
 
         private void ControlOpenFolder_Click(object sender, EventArgs e)
         {
-            OpenParentFolder((((Control)sender).DataContext as FileListItem).FullPath);
+            var item = ((Control)sender).DataContext as FileListItem;
+            FileListListBox.SelectedItem = item;
+            OpenParentFolder(item.FullPath);
         }
     }
 }
