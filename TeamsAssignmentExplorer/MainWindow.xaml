@@ -5,71 +5,97 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:TeamsAssignmentExplorer"
         mc:Ignorable="d"
-        Title="Teams Assignment Explorer" Height="450" Width="800" WindowState="Maximized">
+        Title="Teams Assignment Explorer" Height="450" Width="800" WindowState="Maximized" FontSize="20" FontFamily="Arial Narrow">
     <Window.Resources>
         <Style x:Key="FileListStyle" TargetType="{x:Type ListBoxItem}">
-            <EventSetter Event="MouseDoubleClick" Handler="ListBoxItem_DoubleClick" />
-            <EventSetter Event="KeyDown" Handler="ListBoxItem_KeyDown" />
+            <EventSetter Event="MouseDoubleClick" Handler="ListBoxItem_DoubleClick"/>
+            <EventSetter Event="KeyDown" Handler="ListBoxItem_KeyDown"/>
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding Path=Obsolete}" Value="True">
+                    <Setter Property="Opacity" Value="0.3"/>
+                </DataTrigger>
+            </Style.Triggers>
         </Style>
 
         <Style x:Key="HomeworkListStyle" TargetType="{x:Type TextBlock}">
             <Style.Triggers>
                 <DataTrigger Binding="{Binding Path=WorkingFilesOnly}" Value="true">
-                    <Setter Property="FontStyle" Value="Italic" />
+                    <Setter Property="FontStyle" Value="Italic"/>
                 </DataTrigger>
             </Style.Triggers>
         </Style>
 
         <ContextMenu x:Key="FileListContextMenu">
-            <MenuItem Header="Open" FontWeight="Bold" Click="ContextMenuOpenItem_Click" />
-            <MenuItem Header="Open Folder in Explorer" Click="ContextMenuOpenFolder_Click"/>
+            <MenuItem Header="Open" FontWeight="Bold" Click="ControlOpenItem_Click"/>
+            <MenuItem Header="Open Folder in Explorer" Click="ControlOpenFolder_Click"/>
         </ContextMenu>
     </Window.Resources>
 
-    <Border Padding="8px">
-        <Grid>
+    <Grid Margin="8">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition/>
+        </Grid.RowDefinitions>
+
+        <Label Content="Folder" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="0,0,8,0"/>
+        <ComboBox Name="FolderComboBox" HorizontalAlignment="Stretch" Text="{Binding Path=Folder}" VerticalAlignment="Center" Grid.Column="1" IsEditable="True"/>
+
+        <Label Content="HW Type" HorizontalAlignment="Left" VerticalAlignment="Center" Grid.Row="1" Margin="0,0,8,0"/>
+        <Grid Grid.Row="1" Grid.Column="1" VerticalAlignment="Center" HorizontalAlignment="Stretch">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="60px" />
-                <ColumnDefinition />
+                <ColumnDefinition/>
+                <ColumnDefinition Width="8px"/>
+                <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
-            <Grid.RowDefinitions>
-                <RowDefinition Height="30px" />
-                <RowDefinition Height="30px" />
-                <RowDefinition />
-            </Grid.RowDefinitions>
-
-            <Label Content="Folder" HorizontalAlignment="Left" VerticalAlignment="Center"/>
-            <ComboBox Name="FolderComboBox" HorizontalAlignment="Stretch" Text="{Binding Path=Folder}" VerticalAlignment="Center" Grid.Column="1" IsEditable="True" />
-
-            <Label Content="HW Type" HorizontalAlignment="Left" VerticalAlignment="Center" Grid.Row="1"/>
-            <Grid Grid.Row="1" Grid.Column="1" VerticalAlignment="Center" HorizontalAlignment="Stretch">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition />
-                    <ColumnDefinition Width="8px"/>
-                    <ColumnDefinition Width="Auto"/>
-                </Grid.ColumnDefinitions>
-                <ComboBox Name="HomeworkComboBox" HorizontalAlignment="Stretch" Text="{Binding Path=Homework}" VerticalAlignment="Center" IsEditable="True">
-                    <ComboBox.ItemTemplate>
-                        <DataTemplate>
-                            <TextBlock Text="{Binding Path=Display}" Style="{StaticResource HomeworkListStyle}" />
-                        </DataTemplate>
-                    </ComboBox.ItemTemplate>
-                </ComboBox>
-                <CheckBox Content="Working Files" IsChecked="{Binding Path=ShowWorkingFiles}" VerticalAlignment="Center" Grid.Column="2"/>
-            </Grid>
-
-            <ListBox Name="FileListListBox" Grid.Row="2" Grid.ColumnSpan="2" ItemContainerStyle="{StaticResource FileListStyle}">
-                <ListBox.ItemTemplate>
+            <ComboBox Name="HomeworkComboBox" HorizontalAlignment="Stretch" Text="{Binding Path=Homework}" VerticalAlignment="Center" IsEditable="True" MaxDropDownHeight="720">
+                <ComboBox.ItemTemplate>
                     <DataTemplate>
-                        <StackPanel Orientation="Horizontal" ContextMenu="{StaticResource FileListContextMenu}">
-                            <Border Padding="0,0,5,0">
-                                <Image Source="{Binding Path=Icon}" Width="16px" Height="16px"/>
-                            </Border>
-                            <TextBlock Text="{Binding Path=FileName}"/>
-                        </StackPanel>
+                        <TextBlock Text="{Binding Path=Display}" Style="{StaticResource HomeworkListStyle}"/>
                     </DataTemplate>
-                </ListBox.ItemTemplate>
-            </ListBox>
+                </ComboBox.ItemTemplate>
+            </ComboBox>
+            <CheckBox Content="Working Files" IsChecked="{Binding Path=ShowWorkingFiles}" VerticalAlignment="Center" Grid.Column="2"/>
         </Grid>
-    </Border>
+
+        <ListBox Name="FileListListBox" Grid.Row="2" Grid.ColumnSpan="2" ItemContainerStyle="{StaticResource FileListStyle}" HorizontalContentAlignment="Stretch">
+            <ListBox.ItemTemplate>
+                <DataTemplate>
+                    <StackPanel ContextMenu="{StaticResource FileListContextMenu}">
+                        <StackPanel.ToolTip>
+                            <ToolTip Content="{Binding Path=FileName}" Placement="Bottom" HorizontalOffset="20"/>
+                        </StackPanel.ToolTip>
+                        <Canvas Margin="25,0,63,0" HorizontalAlignment="Stretch">
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Stretch">
+                                <Image Margin="-25,0,4,0" Source="{Binding Path=Icon}" Width="21px" Height="21px"/>
+                                <TextBlock
+                                    Margin="0,1,0,-1"
+                                    MaxWidth="{Binding ActualWidth,
+                                                RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type Canvas}}}"
+                                    Text="{Binding Path=FileName}" TextTrimming="CharacterEllipsis"/>
+
+                                <Button Click="ControlOpenItem_Click" Background="Transparent" BorderBrush="Transparent" Margin="8,0,0,0">
+                                    <Button.ToolTip>
+                                        <ToolTip Content="Open"/>
+                                    </Button.ToolTip>
+                                    <Viewbox Width="21" Height="21" Child="{StaticResource FileEditIcon}"/>
+                                </Button>
+                                <Button Click="ControlOpenFolder_Click" Background="Transparent" BorderBrush="Transparent" Margin="5,0,0,0">
+                                    <Button.ToolTip>
+                                        <ToolTip Content="Open parent folder"/>
+                                    </Button.ToolTip>
+                                    <Viewbox Width="21" Height="21" Child="{StaticResource FolderIcon}"/>
+                                </Button>
+                            </StackPanel>
+                        </Canvas>
+                        <Rectangle Width="0" Height="25"/>
+                    </StackPanel>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
+    </Grid>
 </Window>

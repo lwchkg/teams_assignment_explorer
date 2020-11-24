@@ -25,6 +25,7 @@ namespace TeamsAssignmentExplorer
             public string FileName { get; set; }
             public string FullPath { get; set; }
             public ImageSource Icon { get; set; }
+            public bool Obsolete { get; set; }
         }
 
         public class HomeworkListItem
@@ -114,6 +115,25 @@ namespace TeamsAssignmentExplorer
             }
         }
 
+        protected void OpenParentFolder(string pathToFile)
+        {
+            string path = System.IO.Path.GetDirectoryName(pathToFile);
+            try
+            {
+                new Process
+                {
+                    StartInfo = new ProcessStartInfo("explorer.exe", '"' + path + '"')
+                    {
+                        UseShellExecute = true
+                    }
+                }.Start();
+            }
+            catch (Win32Exception ex)
+            {
+                MessageBox.Show(ex.ToString(), Title, MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
         protected void UpdateFolderList()
         {
             FolderList.Clear();
@@ -143,6 +163,34 @@ namespace TeamsAssignmentExplorer
             return;
         }
 
+        protected bool IsPreviousVersion(string prev, string next)
+        {
+            if (!prev.StartsWith(StringConstants.submittedFiles))
+                return false;
+
+            string prevVersion = System.IO.Path.GetDirectoryName(prev);
+            string prevUser = System.IO.Path.GetDirectoryName(prevVersion);
+
+            string nextVersion = System.IO.Path.GetDirectoryName(next);
+            string nextUser = System.IO.Path.GetDirectoryName(nextVersion);
+
+            return prevUser == nextUser && prevVersion != nextVersion;
+        }
+
+        protected bool IsPreviousOrSameVersion(string prev, string next)
+        {
+            if (!prev.StartsWith(StringConstants.submittedFiles))
+                return false;
+
+            string prevVersion = System.IO.Path.GetDirectoryName(prev);
+            string prevUser = System.IO.Path.GetDirectoryName(prevVersion);
+
+            string nextVersion = System.IO.Path.GetDirectoryName(next);
+            string nextUser = System.IO.Path.GetDirectoryName(nextVersion);
+
+            return prevUser == nextUser;
+        }
+
         protected void MaybeUpdateFileList()
         {
             List<string> files = DirAndFileScanner.GetSubmittedFiles(FormData.Folder,
@@ -154,19 +202,23 @@ namespace TeamsAssignmentExplorer
             if (files.Count == 0)
                 return;
 
-            FileList.Clear();
+            bool[] obsolete = new bool[files.Count];
 
-            foreach (var file in files)
+            bool isObsolete = false;
+            for (int i = files.Count - 2; i >= 0; --i)
             {
-                string path = System.IO.Path.Combine(FormData.Folder, file);
-                using (var ico = IconTools.GetIconForExtension(System.IO.Path.GetExtension(path),
-                                                               ShellIconSize.SmallIcon))
-                {
-                    var image = Imaging.CreateBitmapSourceFromHIcon(
-                        ico.Handle, Int32Rect.Empty, BitmapSizeOptions.FromWidthAndHeight(16, 16));
-                    FileList.Add(new FileListItem { FileName = file, FullPath = path,
-                                                    Icon = image });
-                }
+                isObsolete = isObsolete ? IsPreviousOrSameVersion(files[i], files[i + 1])
+                                        : IsPreviousVersion(files[i], files[i + 1]);
+                obsolete[i] = isObsolete;
+            }
+
+            FileList.Clear();
+            for (int i = 0; i < files.Count; ++i)
+            {
+                string path = System.IO.Path.Combine(FormData.Folder, files[i]);
+                BitmapSource icon = IconUtil.GetIconForExtension(System.IO.Path.GetExtension(path));
+                FileList.Add(new FileListItem { FileName = files[i], FullPath = path,
+                                                Icon = icon, Obsolete = obsolete[i] });
             }
         }
 
@@ -189,29 +241,18 @@ namespace TeamsAssignmentExplorer
                 RunAssociatedProgram((((ListBoxItem)sender).Content as FileListItem).FullPath);
         }
 
-        protected void ContextMenuOpenItem_Click(object sender, EventArgs e)
+        private void ControlOpenItem_Click(object sender, EventArgs e)
         {
-            RunAssociatedProgram((((MenuItem)sender).DataContext as FileListItem).FullPath);
+            var item = ((Control)sender).DataContext as FileListItem;
+            FileListListBox.SelectedItem = item;
+            RunAssociatedProgram(item.FullPath);
         }
 
-        protected void ContextMenuOpenFolder_Click(object sender, EventArgs e)
+        private void ControlOpenFolder_Click(object sender, EventArgs e)
         {
-            string path = System.IO.Path.GetDirectoryName(
-                (((MenuItem)sender).DataContext as FileListItem).FullPath);
-            try
-            {
-                new Process
-                {
-                    StartInfo = new ProcessStartInfo("explorer.exe", '"' + path + '"')
-                    {
-                        UseShellExecute = true
-                    }
-                }.Start();
-            }
-            catch (Win32Exception ex)
-            {
-                MessageBox.Show(ex.ToString(), Title, MessageBoxButton.OK, MessageBoxImage.Error);
-            }
+            var item = ((Control)sender).DataContext as FileListItem;
+            FileListListBox.SelectedItem = item;
+            OpenParentFolder(item.FullPath);
         }
     }
 }

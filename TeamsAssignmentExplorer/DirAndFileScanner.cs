@@ -7,9 +7,6 @@ namespace TeamsAssignmentExplorer
 {
     class DirAndFileScanner
     {
-        const string submittedFiles = "Submitted files";
-        const string workingFiles = "Working files";
-
         public struct HomeworkItem
         {
             public string Homework;
@@ -44,8 +41,8 @@ namespace TeamsAssignmentExplorer
 
             try
             {
-                foreach (string userDir in Directory.GetDirectories(Path.Combine(basePath,
-                                                                                 submittedFiles)))
+                foreach (string userDir in Directory.GetDirectories(Path.Combine(
+                    basePath, StringConstants.submittedFiles)))
                 {
                     foreach (string homeworkDir in Directory.GetDirectories(userDir))
                     {
@@ -58,8 +55,8 @@ namespace TeamsAssignmentExplorer
 
             try
             {
-                foreach (string userDir in Directory.GetDirectories(Path.Combine(basePath,
-                                                                                 workingFiles)))
+                foreach (string userDir in Directory.GetDirectories(Path.Combine(
+                    basePath, StringConstants.workingFiles)))
                 {
                     foreach (string homeworkDir in Directory.GetDirectories(userDir))
                     {
@@ -82,8 +79,8 @@ namespace TeamsAssignmentExplorer
             var output = new List<string>();
             try
             {
-                foreach (string userDir in Directory.GetDirectories(Path.Combine(basePath,
-                                                                                 submittedFiles)))
+                foreach (string userDir in Directory.GetDirectories(Path.Combine(
+                    basePath, StringConstants.submittedFiles)))
                 {
                     string hwPath = Path.Combine(userDir, homework);
                     if (!Directory.Exists(hwPath))
@@ -111,8 +108,8 @@ namespace TeamsAssignmentExplorer
             var output = new List<string>();
             try
             {
-                foreach (string userDir in Directory.GetDirectories(Path.Combine(basePath,
-                                                                                 workingFiles)))
+                foreach (string userDir in Directory.GetDirectories(Path.Combine(
+                    basePath, StringConstants.workingFiles)))
                 {
                     string hwPath = Path.Combine(userDir, homework);
                     if (!Directory.Exists(hwPath))
