@@ -1,7 +1,9 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace TeamsAssignmentExplorer
 {
@@ -48,28 +50,36 @@ namespace TeamsAssignmentExplorer
 
             // Glob [basePath]/Submitted files/[user]/[homework] and
             // [basePath]/Working files/[user]/[homework]
-            var homeworkMap = new SortedDictionary<string, bool>();
+            var homeworkMap = new ConcurrentDictionary<string, bool>();
 
             try
             {
-                foreach (string submittedOrWorkingFilesDir in Directory.EnumerateDirectories(basePath))
+                foreach (string submittedOrWorkingFilesDir in
+                         Directory.EnumerateDirectories(basePath))
                 {
-                    foreach (string userDir in Directory.EnumerateDirectories(submittedOrWorkingFilesDir))
-                    {
-                        foreach (string homeworkDir in Directory.EnumerateDirectories(userDir))
+                    Parallel.ForEach(
+                        Directory.EnumerateDirectories(submittedOrWorkingFilesDir),
+                        userDir =>
                         {
-                            var dirList = Directory.EnumerateDirectories(homeworkDir).GetEnumerator();
-                            bool isWorkingFiles = !dirList.MoveNext();
+                            foreach (string homeworkDir in Directory.EnumerateDirectories(userDir))
+                            {
+                                bool isWorkingFiles = !Directory.EnumerateDirectories(homeworkDir)
+                                                                .GetEnumerator()
+                                                                .MoveNext();
 
-                            if (!homeworkMap.ContainsKey(Path.GetFileName(homeworkDir)))
-                                homeworkMap.Add(Path.GetFileName(homeworkDir), isWorkingFiles);
-                            else if (!isWorkingFiles)
-                                homeworkMap[Path.GetFileName(homeworkDir)] = false;
-                        }
-                    }
+                                homeworkMap.AddOrUpdate(Path.GetFileName(homeworkDir),
+                                                        isWorkingFiles,
+                                                        (_, value) => value || isWorkingFiles);
+                            }
+                        });
                 }
             }
             catch (Exception) { /* Do nothing. */ }
+
+            var list = homeworkMap.Select(r => new HomeworkItem() {
+                Homework = r.Key, WorkingFilesOnly = r.Value
+            }).ToList();
+            list.Sort((a, b) => a.Homework.CompareTo(b.Homework));
 
 #if DEBUG
             stopwatch.Stop();
@@ -77,9 +87,7 @@ namespace TeamsAssignmentExplorer
                                                stopwatch.ElapsedMilliseconds);
 #endif
 
-            return homeworkMap.Select(r => new HomeworkItem() {
-                Homework = r.Key, WorkingFilesOnly = r.Value
-            }).ToList();
+            return list;
         }
 
         public static SubmittedAndWorkingFiles GetSubmittedAndWorkingFiles(string basePath, 
