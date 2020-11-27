@@ -43,7 +43,7 @@ namespace TeamsAssignmentExplorer
 
         public static List<HomeworkItem> GetHomeworkList(string basePath)
         {
-#if DEBUG 
+#if DEBUG
             var stopwatch = new System.Diagnostics.Stopwatch();
             stopwatch.Start();
 #endif
