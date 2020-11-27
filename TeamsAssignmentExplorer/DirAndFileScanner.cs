@@ -41,6 +41,11 @@ namespace TeamsAssignmentExplorer
 
         public static List<HomeworkItem> GetHomeworkList(string basePath)
         {
+#if DEBUG 
+            var stopwatch = new System.Diagnostics.Stopwatch();
+            stopwatch.Start();
+#endif
+
             // Glob [basePath]/Submitted files/[user]/[homework] and
             // [basePath]/Working files/[user]/[homework]
             var homeworkMap = new SortedDictionary<string, bool>();
@@ -65,6 +70,12 @@ namespace TeamsAssignmentExplorer
                 }
             }
             catch (Exception) { /* Do nothing. */ }
+
+#if DEBUG
+            stopwatch.Stop();
+            System.Diagnostics.Debug.WriteLine("Traversing \"{0}\" takes {1} ms.", basePath,
+                                               stopwatch.ElapsedMilliseconds);
+#endif
 
             return homeworkMap.Select(r => new HomeworkItem() {
                 Homework = r.Key, WorkingFilesOnly = r.Value
