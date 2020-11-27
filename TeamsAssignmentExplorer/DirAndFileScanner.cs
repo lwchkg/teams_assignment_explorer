@@ -105,9 +105,11 @@ namespace TeamsAssignmentExplorer
             var workingFiles = new List<string>();
             try
             {
-                foreach (string submittedOrWorkingFilesDir in Directory.EnumerateDirectories(basePath))
+                foreach (string submittedOrWorkingFilesDir in
+                         Directory.EnumerateDirectories(basePath))
                 {
-                    foreach (string userDir in Directory.EnumerateDirectories(submittedOrWorkingFilesDir))
+                    foreach (string userDir in
+                             Directory.EnumerateDirectories(submittedOrWorkingFilesDir))
                     {
                         string hwPath = Path.Combine(userDir, homework);
                         if (!Directory.Exists(hwPath))
