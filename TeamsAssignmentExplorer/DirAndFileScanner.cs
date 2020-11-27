@@ -23,11 +23,11 @@ namespace TeamsAssignmentExplorer
         {
             var output = new List<string>();
             string basePath = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
-            foreach (string orgDir in Directory.GetDirectories(basePath))
+            foreach (string orgDir in Directory.EnumerateDirectories(basePath))
             {
                 try
                 {
-                    foreach (string repoDir in Directory.GetDirectories(orgDir))
+                    foreach (string repoDir in Directory.EnumerateDirectories(orgDir))
                     {
                         if (StringConstants.StudentWorkSuffixes.Any(s => repoDir.EndsWith(s)))
                             output.Add(repoDir);
@@ -52,14 +52,14 @@ namespace TeamsAssignmentExplorer
 
             try
             {
-                foreach (string submittedOrWorkingFilesDir in Directory.GetDirectories(basePath))
+                foreach (string submittedOrWorkingFilesDir in Directory.EnumerateDirectories(basePath))
                 {
-                    foreach (string userDir in Directory.GetDirectories(submittedOrWorkingFilesDir))
+                    foreach (string userDir in Directory.EnumerateDirectories(submittedOrWorkingFilesDir))
                     {
-                        foreach (string homeworkDir in Directory.GetDirectories(userDir))
+                        foreach (string homeworkDir in Directory.EnumerateDirectories(userDir))
                         {
-                            string[] dirs = Directory.GetDirectories(homeworkDir);
-                            bool isWorkingFiles = dirs.Length == 0;
+                            var dirList = Directory.EnumerateDirectories(homeworkDir).GetEnumerator();
+                            bool isWorkingFiles = !dirList.MoveNext();
 
                             if (!homeworkMap.ContainsKey(Path.GetFileName(homeworkDir)))
                                 homeworkMap.Add(Path.GetFileName(homeworkDir), isWorkingFiles);
@@ -85,6 +85,8 @@ namespace TeamsAssignmentExplorer
         public static SubmittedAndWorkingFiles GetSubmittedAndWorkingFiles(string basePath, 
                                                                            string homework)
         {
+            System.Diagnostics.Debug.Assert(homework.Trim() != "");
+
             // Glob [basePath]/Submitted files/[user]/[homework]/Version */*.*
             // and [basePath]/Working files/[user]/[homework]/Version */*.*
             //
@@ -95,14 +97,14 @@ namespace TeamsAssignmentExplorer
             var workingFiles = new List<string>();
             try
             {
-                foreach (string submittedOrWorkingFilesDir in Directory.GetDirectories(basePath))
+                foreach (string submittedOrWorkingFilesDir in Directory.EnumerateDirectories(basePath))
                 {
-                    foreach (string userDir in Directory.GetDirectories(submittedOrWorkingFilesDir))
+                    foreach (string userDir in Directory.EnumerateDirectories(submittedOrWorkingFilesDir))
                     {
                         string hwPath = Path.Combine(userDir, homework);
                         if (!Directory.Exists(hwPath))
                             continue;
-                        foreach (string versionDir in Directory.GetDirectories(hwPath))
+                        foreach (string versionDir in Directory.EnumerateDirectories(hwPath))
                         {
                             var files = Directory.GetFiles(versionDir);
                             Array.Sort(files);
