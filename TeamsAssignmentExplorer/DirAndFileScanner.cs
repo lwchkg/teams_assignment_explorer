@@ -7,19 +7,16 @@ namespace TeamsAssignmentExplorer
 {
     class DirAndFileScanner
     {
-        static readonly string[] studentWorkSuffixes =
-        {
-            " - Student Work",
-            " - 學生功課"
-        };
-
-        const string submittedFiles = "Submitted files";
-        const string workingFiles = "Working files";
-
         public struct HomeworkItem
         {
             public string Homework;
             public bool WorkingFilesOnly;
+        }
+
+        public struct SubmittedAndWorkingFiles
+        {
+            public List<string> SubmittedFiles;
+            public List<string> WorkingFiles;
         }
 
         public static List<string> GetFolderList()
@@ -32,7 +29,7 @@ namespace TeamsAssignmentExplorer
                 {
                     foreach (string repoDir in Directory.GetDirectories(orgDir))
                     {
-                        if (studentWorkSuffixes.Any(s => repoDir.EndsWith(s)))
+                        if (StringConstants.StudentWorkSuffixes.Any(s => repoDir.EndsWith(s)))
                             output.Add(repoDir);
                     }
                 }
@@ -50,27 +47,20 @@ namespace TeamsAssignmentExplorer
 
             try
             {
-                foreach (string userDir in Directory.GetDirectories(Path.Combine(
-                    basePath, StringConstants.submittedFiles)))
+                foreach (string submittedOrWorkingFilesDir in Directory.GetDirectories(basePath))
                 {
-                    foreach (string homeworkDir in Directory.GetDirectories(userDir))
+                    foreach (string userDir in Directory.GetDirectories(submittedOrWorkingFilesDir))
                     {
-                        if (!homeworkMap.ContainsKey(Path.GetFileName(homeworkDir)))
-                            homeworkMap.Add(Path.GetFileName(homeworkDir), false);
-                    }
-                }
-            }
-            catch (Exception) { /* Do nothing. */ }
+                        foreach (string homeworkDir in Directory.GetDirectories(userDir))
+                        {
+                            string[] dirs = Directory.GetDirectories(homeworkDir);
+                            bool isWorkingFiles = dirs.Length == 0;
 
-            try
-            {
-                foreach (string userDir in Directory.GetDirectories(Path.Combine(
-                    basePath, StringConstants.workingFiles)))
-                {
-                    foreach (string homeworkDir in Directory.GetDirectories(userDir))
-                    {
-                        if (!homeworkMap.ContainsKey(Path.GetFileName(homeworkDir)))
-                            homeworkMap.Add(Path.GetFileName(homeworkDir), true);
+                            if (!homeworkMap.ContainsKey(Path.GetFileName(homeworkDir)))
+                                homeworkMap.Add(Path.GetFileName(homeworkDir), isWorkingFiles);
+                            else if (!isWorkingFiles)
+                                homeworkMap[Path.GetFileName(homeworkDir)] = false;
+                        }
                     }
                 }
             }
@@ -81,60 +71,55 @@ namespace TeamsAssignmentExplorer
             }).ToList();
         }
 
-        public static List<string> GetSubmittedFiles(string basePath, string homework)
+        public static SubmittedAndWorkingFiles GetSubmittedAndWorkingFiles(string basePath, 
+                                                                           string homework)
         {
             // Glob [basePath]/Submitted files/[user]/[homework]/Version */*.*
-            // (Do not check for the word "Version".)
-            var output = new List<string>();
+            // and [basePath]/Working files/[user]/[homework]/Version */*.*
+            //
+            // Due to translations of folder names by Microsoft, we do not check for the phrases
+            // "Submitted files", "Working files" and "Version". Otherwise we need to add code for
+            // every translation.)
+            var submittedFiles = new List<string>();
+            var workingFiles = new List<string>();
             try
             {
-                foreach (string userDir in Directory.GetDirectories(Path.Combine(
-                    basePath, StringConstants.submittedFiles)))
+                foreach (string submittedOrWorkingFilesDir in Directory.GetDirectories(basePath))
                 {
-                    string hwPath = Path.Combine(userDir, homework);
-                    if (!Directory.Exists(hwPath))
-                        continue;
-                    foreach (string versionDir in Directory.GetDirectories(hwPath))
+                    foreach (string userDir in Directory.GetDirectories(submittedOrWorkingFilesDir))
                     {
-                        var files = Directory.GetFiles(versionDir);
-                        Array.Sort(files);
-                        foreach (string file in files)
+                        string hwPath = Path.Combine(userDir, homework);
+                        if (!Directory.Exists(hwPath))
+                            continue;
+                        foreach (string versionDir in Directory.GetDirectories(hwPath))
                         {
-                            // Strip base path from the filename.
-                            output.Add(file.Substring(basePath.Length + 1));
+                            var files = Directory.GetFiles(versionDir);
+                            Array.Sort(files);
+                            foreach (string file in files)
+                            {
+                                // Strip base path from the filename.
+                                submittedFiles.Add(file.Substring(basePath.Length + 1));
+                            }
+                        }
+
+                        { // Scope
+                            var files = Directory.GetFiles(hwPath);
+                            Array.Sort(files);
+                            foreach (string file in files)
+                            {
+                                // Strip base path from the filename.
+                                workingFiles.Add(file.Substring(basePath.Length + 1));
+                            }
                         }
                     }
                 }
             }
             catch (Exception) { /* Do nothing */ }
 
-            return output;
-        }
-
-        public static List<string> GetWorkingFiles(string basePath, string homework)
-        {
-            // Glob [basePath]/Working files/[user]/[homework]/Version */*.*
-            var output = new List<string>();
-            try
-            {
-                foreach (string userDir in Directory.GetDirectories(Path.Combine(
-                    basePath, StringConstants.workingFiles)))
-                {
-                    string hwPath = Path.Combine(userDir, homework);
-                    if (!Directory.Exists(hwPath))
-                        continue;
-                    var files = Directory.GetFiles(hwPath);
-                    Array.Sort(files);
-                    foreach (string file in files)
-                    {
-                        // Strip base path from the filename.
-                        output.Add(file.Substring(basePath.Length + 1));
-                    }
-                }
-            }
-            catch (Exception) { /* Do nothing */ }
-
-            return output;
+            return new SubmittedAndWorkingFiles() {
+                SubmittedFiles = submittedFiles,
+                WorkingFiles = workingFiles
+            };
         }
     }
 }

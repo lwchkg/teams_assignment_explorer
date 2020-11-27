@@ -165,9 +165,7 @@ namespace TeamsAssignmentExplorer
 
         protected bool IsPreviousVersion(string prev, string next)
         {
-            if (!prev.StartsWith(StringConstants.submittedFiles))
-                return false;
-
+            // TODO: explain logic with Working Files.
             string prevVersion = System.IO.Path.GetDirectoryName(prev);
             string prevUser = System.IO.Path.GetDirectoryName(prevVersion);
 
@@ -179,9 +177,7 @@ namespace TeamsAssignmentExplorer
 
         protected bool IsPreviousOrSameVersion(string prev, string next)
         {
-            if (!prev.StartsWith(StringConstants.submittedFiles))
-                return false;
-
+            // TODO: explain logic with Working Files.
             string prevVersion = System.IO.Path.GetDirectoryName(prev);
             string prevUser = System.IO.Path.GetDirectoryName(prevVersion);
 
@@ -193,11 +189,11 @@ namespace TeamsAssignmentExplorer
 
         protected void MaybeUpdateFileList()
         {
-            List<string> files = DirAndFileScanner.GetSubmittedFiles(FormData.Folder,
-                                                                     FormData.Homework);
+            var allFiles = DirAndFileScanner.GetSubmittedAndWorkingFiles(FormData.Folder,
+                                                                         FormData.Homework);
+            List<string> files = allFiles.SubmittedFiles;
             if (FormData.ShowWorkingFiles || files.Count == 0)
-                files.AddRange(DirAndFileScanner.GetWorkingFiles(FormData.Folder,
-                                                                 FormData.Homework));
+                files.AddRange(allFiles.WorkingFiles);
 
             if (files.Count == 0)
                 return;

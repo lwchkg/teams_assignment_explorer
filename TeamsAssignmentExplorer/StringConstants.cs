@@ -8,7 +8,11 @@ namespace TeamsAssignmentExplorer
 {
     class StringConstants
     {
-        public const string submittedFiles = "Submitted files";
-        public const string workingFiles = "Working files";
+        // We need to keep translations of the suffixes.
+        public static readonly string[] StudentWorkSuffixes =
+        {
+            " - Student Work",
+            " - 學生功課"
+        };
     }
 }
