@@ -101,47 +101,59 @@ namespace TeamsAssignmentExplorer
             // Due to translations of folder names by Microsoft, we do not check for the phrases
             // "Submitted files", "Working files" and "Version". Otherwise we need to add code for
             // every translation.)
-            var submittedFiles = new List<string>();
-            var workingFiles = new List<string>();
+#if DEBUG
+            var stopwatch = new System.Diagnostics.Stopwatch();
+            stopwatch.Start();
+#endif
+
+            var submittedFiles = new ConcurrentBag<string>();
+            var workingFiles = new ConcurrentBag<string>();
             try
             {
                 foreach (string submittedOrWorkingFilesDir in
                          Directory.EnumerateDirectories(basePath))
                 {
-                    foreach (string userDir in
-                             Directory.EnumerateDirectories(submittedOrWorkingFilesDir))
-                    {
-                        string hwPath = Path.Combine(userDir, homework);
-                        if (!Directory.Exists(hwPath))
-                            continue;
-                        foreach (string versionDir in Directory.EnumerateDirectories(hwPath))
+                    Parallel.ForEach(Directory.EnumerateDirectories(submittedOrWorkingFilesDir),
+                        userDir =>
                         {
-                            var files = Directory.GetFiles(versionDir);
-                            Array.Sort(files);
-                            foreach (string file in files)
-                            {
-                                // Strip base path from the filename.
-                                submittedFiles.Add(file.Substring(basePath.Length + 1));
-                            }
-                        }
+                            string hwPath = Path.Combine(userDir, homework);
+                            if (!Directory.Exists(hwPath)) return;
 
-                        { // Scope
-                            var files = Directory.GetFiles(hwPath);
-                            Array.Sort(files);
-                            foreach (string file in files)
+                            foreach (string versionDir in Directory.EnumerateDirectories(hwPath))
                             {
-                                // Strip base path from the filename.
-                                workingFiles.Add(file.Substring(basePath.Length + 1));
+                                foreach (string file in Directory.GetFiles(versionDir))
+                                {
+                                    // Strip base path from the filename.
+                                    submittedFiles.Add(file.Substring(basePath.Length + 1));
+                                }
                             }
-                        }
-                    }
+
+                            { // Scope
+                                foreach (string file in Directory.GetFiles(hwPath))
+                                {
+                                    // Strip base path from the filename.
+                                    workingFiles.Add(file.Substring(basePath.Length + 1));
+                                }
+                            }
+                        });
                 }
             }
             catch (Exception) { /* Do nothing */ }
 
+            List<string> submittedFilesSorted = submittedFiles.ToList();
+            submittedFilesSorted.Sort();
+            List<string> workingFilesSorted = workingFiles.ToList();
+            workingFilesSorted.Sort();
+
+#if DEBUG
+            stopwatch.Stop();
+            System.Diagnostics.Debug.WriteLine("Traversing homework \"{0}\" takes {1} ms.",
+                                               homework, stopwatch.ElapsedMilliseconds);
+#endif
+
             return new SubmittedAndWorkingFiles() {
-                SubmittedFiles = submittedFiles,
-                WorkingFiles = workingFiles
+                SubmittedFiles = submittedFilesSorted,
+                WorkingFiles = workingFilesSorted
             };
         }
     }
