@@ -200,6 +200,7 @@ namespace TeamsAssignmentExplorer
             // not happen.
             // Do not execute update if Homework is nothing.
             if (FormData.Homework.Trim() == "") return;
+            if (FormData.Homework == loadingHomeworkList) return;
             if (FormData.Homework == selectFromDropDown) return;
 
             var allFiles = DirAndFileScanner.GetSubmittedAndWorkingFiles(FormData.Folder,
