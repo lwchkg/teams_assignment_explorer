@@ -121,20 +121,12 @@ namespace TeamsAssignmentExplorer
 
                             foreach (string versionDir in Directory.EnumerateDirectories(hwPath))
                             {
-                                foreach (string file in Directory.GetFiles(versionDir))
-                                {
-                                    // Strip base path from the filename.
-                                    submittedFiles.Add(file.Substring(basePath.Length + 1));
-                                }
+                                foreach (string file in Directory.EnumerateFiles(versionDir))
+                                    submittedFiles.Add(StripBasePath(file, basePath));
                             }
 
-                            { // Scope
-                                foreach (string file in Directory.GetFiles(hwPath))
-                                {
-                                    // Strip base path from the filename.
-                                    workingFiles.Add(file.Substring(basePath.Length + 1));
-                                }
-                            }
+                            foreach (string file in Directory.EnumerateFiles(hwPath))
+                                workingFiles.Add(StripBasePath(file, basePath));
                         });
                 }
             }
@@ -155,6 +147,16 @@ namespace TeamsAssignmentExplorer
                 SubmittedFiles = submittedFilesSorted,
                 WorkingFiles = workingFilesSorted
             };
+        }
+
+        private static string StripBasePath(string path, string basePath)
+        {
+            if (!path.StartsWith(basePath))
+                return path;
+
+            if (basePath.Last() == Path.DirectorySeparatorChar)
+                return path.Substring(basePath.Length);
+            return path.Substring(basePath.Length + 1);
         }
     }
 }
