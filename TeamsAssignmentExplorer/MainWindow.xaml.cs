@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -18,6 +19,7 @@ namespace TeamsAssignmentExplorer
     /// </summary>
     public partial class MainWindow : Window
     {
+        const string loadingHomeworkList = "(Loading homework list...)";
         const string selectFromDropDown = "(Please select from the drop-down list.)";
 
         public class FileListItem
@@ -144,9 +146,13 @@ namespace TeamsAssignmentExplorer
         }
 
 
-        protected void UpdateHomeworkList()
+        protected async Task UpdateHomeworkList()
         {
-            var list = DirAndFileScanner.GetHomeworkList(FormData.Folder);
+            FormData.Homework = loadingHomeworkList;
+            HomeworkComboBox.IsEnabled = false;
+
+            var list = await Task.Factory.StartNew(
+                () => DirAndFileScanner.GetHomeworkList(FormData.Folder));
             HomeworkList.Clear();
             foreach (var item in list)
             {
@@ -160,6 +166,7 @@ namespace TeamsAssignmentExplorer
             }
 
             FormData.Homework = selectFromDropDown;
+            HomeworkComboBox.IsEnabled = true;
             return;
         }
 
@@ -189,6 +196,13 @@ namespace TeamsAssignmentExplorer
 
         protected void MaybeUpdateFileList()
         {
+            // TODO: investigate FormData.Homework can be empty if Folder is changed. This should
+            // not happen.
+            // Do not execute update if Homework is nothing.
+            if (FormData.Homework.Trim() == "") return;
+            if (FormData.Homework == loadingHomeworkList) return;
+            if (FormData.Homework == selectFromDropDown) return;
+
             var allFiles = DirAndFileScanner.GetSubmittedAndWorkingFiles(FormData.Folder,
                                                                          FormData.Homework);
             List<string> files = allFiles.SubmittedFiles;
@@ -221,7 +235,7 @@ namespace TeamsAssignmentExplorer
         protected void FormData_PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
             if (e.PropertyName == "Folder")
-                UpdateHomeworkList();
+                _ = UpdateHomeworkList();
             else if (e.PropertyName == "Homework" || e.PropertyName == "ShowWorkingFiles")
                 MaybeUpdateFileList();
         }
