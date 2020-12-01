@@ -69,7 +69,7 @@ namespace TeamsAssignmentExplorer
 
                                 homeworkMap.AddOrUpdate(Path.GetFileName(homeworkDir),
                                                         isWorkingFiles,
-                                                        (_, value) => value || isWorkingFiles);
+                                                        (_, value) => value && isWorkingFiles);
                             }
                         });
                 }
